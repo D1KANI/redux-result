@@ -1,31 +1,46 @@
-import React, {memo, useEffect, useState} from 'react';
-import {CommonPageProps} from './types';
-import {Col, Row} from 'react-bootstrap';
-import {useParams} from 'react-router-dom';
-import {ContactDto} from 'src/types/dto/ContactDto';
-import {GroupContactsDto} from 'src/types/dto/GroupContactsDto';
-import {GroupContactsCard} from 'src/components/GroupContactsCard';
-import {Empty} from 'src/components/Empty';
-import {ContactCard} from 'src/components/ContactCard';
+import React, { memo, useEffect, useState } from "react";
+import { Col, Row } from "react-bootstrap";
+import { useParams } from "react-router-dom";
+import { ContactDto } from "src/types/dto/ContactDto";
+import { GroupContactsDto } from "src/types/dto/GroupContactsDto";
+import { GroupContactsCard } from "src/components/GroupContactsCard";
+import { Empty } from "src/components/Empty";
+import { ContactCard } from "src/components/ContactCard";
+import { useAppDispatch, useAppSelector } from "src/store/hooks";
+import { loadContactsDataAction, loadGroupDataAction } from "src/store/actions";
 
-export const GroupPage = memo<CommonPageProps>(({
-  contactsState,
-  groupContactsState
-}) => {
-  const {groupId} = useParams<{ groupId: string }>();
+export const GroupPage = memo(() => {
+  const dispatch = useAppDispatch();
+  const contactsState = useAppSelector((state) => state.contacts);
+  const groupContactsState = useAppSelector((state) => state.group);
+  const { groupId } = useParams<{ groupId: string }>();
   const [contacts, setContacts] = useState<ContactDto[]>([]);
   const [groupContacts, setGroupContacts] = useState<GroupContactsDto>();
 
   useEffect(() => {
-    const findGroup = groupContactsState[0].find(({id}) => id === groupId);
+    if (!groupContactsState.data.length) {
+      dispatch(loadGroupDataAction());
+    }
+  }, [groupContactsState.data, dispatch]);
+
+  useEffect(() => {
+    if (!contactsState.data.length) {
+      dispatch(loadContactsDataAction());
+    }
+  }, [contactsState.data, dispatch]);
+
+  useEffect(() => {
+    const findGroup = groupContactsState.data.find(({ id }) => id === groupId);
     setGroupContacts(findGroup);
     setContacts(() => {
       if (findGroup) {
-        return contactsState[0].filter(({id}) => findGroup.contactIds.includes(id))
+        return contactsState.data.filter(({ id }) =>
+          findGroup.contactIds.includes(id),
+        );
       }
       return [];
     });
-  }, [groupId]);
+  }, [groupId, contactsState.data, groupContactsState.data]);
 
   return (
     <Row className="g-4">
@@ -48,7 +63,9 @@ export const GroupPage = memo<CommonPageProps>(({
             </Row>
           </Col>
         </>
-      ) : <Empty />}
+      ) : (
+        <Empty />
+      )}
     </Row>
   );
 });
