@@ -1,21 +1,19 @@
-import { applyMiddleware, combineReducers, createStore } from "redux";
-import { contactsReducer } from "./contactsReducer";
-import { favoritesReducer } from "./favoritesReducer";
-import { groupReducer } from "./groupReducer";
-import { thunk } from "redux-thunk";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { logActionMiddleware } from "./logActionMiddleware";
-import { composeWithDevTools } from "@redux-devtools/extension";
+import { contactMiddleware, contactReducer, contactReducerPath } from "./contacts";
+import { groupMiddleware, groupReducer, groupReducerPath } from "./groups";
 
 const rootReducer = combineReducers({
-  contacts: contactsReducer,
-  favorites: favoritesReducer,
-  group: groupReducer,
+  [contactReducerPath]: contactReducer,
+  [groupReducerPath]: groupReducer,
 });
 
-const composeEnhancers = composeWithDevTools(
-  applyMiddleware(thunk, logActionMiddleware),
-);
-
-export const store = createStore(rootReducer, {}, composeEnhancers);
+export const store = configureStore({
+  reducer: rootReducer,
+  devTools: true,
+  middleware(getDefaultMiddleware) {
+    return getDefaultMiddleware().concat([logActionMiddleware, contactMiddleware, groupMiddleware]);
+  },
+});
 
 export type RootState = ReturnType<typeof rootReducer>;
