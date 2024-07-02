@@ -1,46 +1,39 @@
-import React, { memo, useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { ContactCard } from "src/components/ContactCard";
 import { FilterForm, FilterFormValues } from "src/components/FilterForm";
 import { ContactDto } from "src/types/dto/ContactDto";
-import { useAppDispatch, useAppSelector } from "src/store/hooks";
-import { loadContactsDataAction } from "src/store/actions";
+import { useGetContactsQuery } from "src/store/contacts";
+import { useGetGroupsQuery } from "src/store/groups";
 
 export const ContactListPage = memo(() => {
-  const dispatch = useAppDispatch();
-  const contactsState = useAppSelector((state) => state.contacts);
-  const groupContactsState = useAppSelector((state) => state.group);
-  const [contacts, setContacts] = useState<ContactDto[]>(contactsState.data);
+  const { data: contactsState } = useGetContactsQuery();
+  console.log("CONTACTS", contactsState);
+  const { data: groupContactsState } = useGetGroupsQuery();
+  console.log("GROUP", groupContactsState);
+  const [contacts, setContacts] = useState<ContactDto[]>(contactsState ?? []);
 
   useEffect(() => {
-    if (!contactsState.data.length) {
-      dispatch(loadContactsDataAction());
-    }
-  }, [dispatch, contactsState.data]);
-
-  useEffect(() => {
-    setContacts(contactsState.data);
-  }, [contactsState.data]);
+    if (contactsState) setContacts(contactsState);
+  }, [contactsState]);
 
   const onSubmit = (fv: Partial<FilterFormValues>) => {
-    let findContacts: ContactDto[] = contactsState.data;
+    if (!contactsState || !groupContactsState) {
+      return;
+    }
+
+    let findContacts: ContactDto[] = contactsState;
 
     if (fv.name) {
       const fvName = fv.name.toLowerCase();
-      findContacts = findContacts.filter(
-        ({ name }) => name.toLowerCase().indexOf(fvName) > -1,
-      );
+      findContacts = findContacts.filter(({ name }) => name.toLowerCase().indexOf(fvName) > -1);
     }
 
     if (fv.groupId) {
-      const groupContacts = groupContactsState.data.find(
-        ({ id }) => id === fv.groupId,
-      );
+      const groupContacts = groupContactsState.find(({ id }) => id === fv.groupId);
 
       if (groupContacts) {
-        findContacts = findContacts.filter(({ id }) =>
-          groupContacts.contactIds.includes(id),
-        );
+        findContacts = findContacts.filter(({ id }) => groupContacts.contactIds.includes(id));
       }
     }
 

@@ -1,26 +1,19 @@
-import React, { memo, useEffect } from "react";
+import { memo } from "react";
 import { Col, Row } from "react-bootstrap";
 import { GroupContactsCard } from "src/components/GroupContactsCard";
-import { loadGroupDataAction } from "src/store/actions";
-import { useAppDispatch, useAppSelector } from "src/store/hooks";
+import { useGetGroupsQuery } from "src/store/groups";
 
 export const GroupListPage = memo(() => {
-  const dispatch = useAppDispatch();
-  const groupContactsState = useAppSelector((state) => state.group);
-
-  useEffect(() => {
-    if (!groupContactsState.data.length) {
-      dispatch(loadGroupDataAction());
-    }
-  }, [groupContactsState.data, dispatch]);
+  const { data: groupContactsState } = useGetGroupsQuery();
 
   return (
     <Row xxl={4}>
-      {groupContactsState.data.map((groupContacts) => (
-        <Col key={groupContacts.id}>
-          <GroupContactsCard groupContacts={groupContacts} withLink />
-        </Col>
-      ))}
+      {groupContactsState &&
+        groupContactsState.map((groupContacts) => (
+          <Col key={groupContacts.id}>
+            <GroupContactsCard groupContacts={groupContacts} withLink />
+          </Col>
+        ))}
     </Row>
   );
 });
