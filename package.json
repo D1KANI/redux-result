@@ -48,9 +48,7 @@
     ]
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.2.6",
-    "react-redux": "^9.1.2",
-    "redux": "^5.0.1",
-    "redux-thunk": "^3.1.0"
+    "mobx": "^6.13.0",
+    "mobx-react-lite": "^4.0.7"
   }
 }

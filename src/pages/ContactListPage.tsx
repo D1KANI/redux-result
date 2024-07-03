@@ -1,21 +1,30 @@
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { ContactCard } from "src/components/ContactCard";
 import { FilterForm, FilterFormValues } from "src/components/FilterForm";
 import { ContactDto } from "src/types/dto/ContactDto";
-import { useGetContactsQuery } from "src/store/contacts";
-import { useGetGroupsQuery } from "src/store/groups";
+import { groupStore } from "src/store/groupStore";
+import { contactStore } from "src/store/contactStore";
+import { observer } from "mobx-react-lite";
 
-export const ContactListPage = memo(() => {
-  const { data: contactsState } = useGetContactsQuery();
-  console.log("CONTACTS", contactsState);
-  const { data: groupContactsState } = useGetGroupsQuery();
-  console.log("GROUP", groupContactsState);
+export const ContactListPage = observer(() => {
+  const contactsState = contactStore.contacts;
+  const groupContactsState = groupStore.groups;
   const [contacts, setContacts] = useState<ContactDto[]>(contactsState ?? []);
 
   useEffect(() => {
-    if (contactsState) setContacts(contactsState);
+    if (contactsState) {
+      setContacts(contactsState);
+    } else {
+      contactStore.getContacts();
+    }
   }, [contactsState]);
+
+  useEffect(() => {
+    if (!groupContactsState) {
+      groupStore.getGroups();
+    }
+  }, [groupContactsState]);
 
   const onSubmit = (fv: Partial<FilterFormValues>) => {
     if (!contactsState || !groupContactsState) {
