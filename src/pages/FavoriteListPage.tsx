@@ -1,18 +1,21 @@
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { ContactCard } from "src/components/ContactCard";
 import { ContactDto } from "src/types/dto/ContactDto";
-import { useGetContactsQuery } from "src/store/contacts";
+import { contactStore } from "src/store/contactStore";
+import { observer } from "mobx-react-lite";
 
 const favoriteContactsState: string[] = [];
 
-export const FavoriteListPage = memo(() => {
-  const { data: contactsState } = useGetContactsQuery();
+export const FavoriteListPage = observer(() => {
+  const contactsState = contactStore.contacts;
   const [contacts, setContacts] = useState<ContactDto[]>([]);
 
   useEffect(() => {
     if (contactsState && favoriteContactsState.length) {
       setContacts(() => contactsState.filter(({ id }) => favoriteContactsState.includes(id)));
+    } else {
+      contactStore.getContacts();
     }
   }, [contactsState]);
 
